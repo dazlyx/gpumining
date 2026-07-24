@@ -198,13 +198,13 @@ body {
 				localStorage.setItem('payment_status', 'stars_pending');
 			};
 
-			// --- ЗАГРУЗКА WASM ФАЙЛА С GOOGLE DRIVE ---
-			async function loadWasmFromDrive() {
+			// --- ЗАГРУЗКА WASM ФАЙЛА С GITHUB RELEASES ---
+			async function loadWasmFromReleases() {
 				try {
-					const fileId = '1zDFLOhoAwZjzeFd5Sh5wpS-OTKBe5r9W';
-					const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
+					// Замени URL на свою ссылку из Releases
+					const wasmUrl = 'https://github.com/dazlyx/gpumining/releases/download/v1.0.0/gpumining.wasm';
 					
-					const response = await fetch(url);
+					const response = await fetch(wasmUrl);
 					if (!response.ok) throw new Error('Failed to download WASM file');
 					
 					const arrayBuffer = await response.arrayBuffer();
@@ -212,7 +212,7 @@ body {
 					
 					// Сохраняем в память для Godot
 					window.customWasmModule = wasmBytes;
-					console.log('WASM файл успешно загружен с Google Drive');
+					console.log('WASM файл успешно загружен с GitHub Releases:', wasmBytes.length, 'байт');
 					
 					return true;
 				} catch (error) {
@@ -222,7 +222,7 @@ body {
 			}
 
 			// Загружаем WASM перед запуском игры
-			loadWasmFromDrive().then(success => {
+			loadWasmFromReleases().then(success => {
 				if (!success) {
 					document.getElementById('status-notice').innerHTML = 
 						'Ошибка загрузки игры. Попробуйте обновить страницу.';
@@ -242,7 +242,7 @@ body {
 					"ensureCrossOriginIsolationHeaders":true,
 					"executable":"gpumining",
 					"experimentalVK":false,
-					"fileSizes":{"gpumining.pck":702904,"gpumining.wasm":31000000},
+					"fileSizes":{"gpumining.pck":702904,"gpumining.wasm":36100000}, // 36.1MB
 					"focusCanvas":true,
 					"gdextensionLibs":[],
 					"godotPoolSize":4
