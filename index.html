@@ -90,9 +90,11 @@ body {
 	z-index: 1;
 }
 		</style>
-		<link id="-gd-engine-icon" rel="icon" type="image/png" href="GPU Mining.icon.png" />
-<link rel="apple-touch-icon" href="GPU Mining.apple-touch-icon.png"/>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="gpumining.icon.png" />
+		<link rel="apple-touch-icon" href="gpumining.apple-touch-icon.png"/>
 
+		<!-- Подключение библиотеки TonConnect UI -->
+		<script src="https://unpkg.com/@tonconnect/ui/dist/tonconnect-ui.min.js"></script>
 	</head>
 	<body>
 		<canvas id="canvas">
@@ -104,10 +106,13 @@ body {
 		</noscript>
 
 		<div id="status">
-			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="GPU Mining.png" alt="">
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="gpumining.png" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
 		</div>
+
+		<!-- Контейнер для модального окна TonConnect (скрыт по умолчанию) -->
+		<div id="ton-connect-modal" style="display: none;"></div>
 
 		<!-- Telegram WebApp Integration -->
 		<script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -133,11 +138,70 @@ body {
 			} else {
 				console.log("Запущено не из Telegram или пользователь анонимен");
 			}
+
+			// --- ИНИЦИАЛИЗАЦИЯ TON CONNECT ---
+			const manifestUrl = 'https://dazlyx.github.io/gpumining/tonconnect-manifest.json'; 
+			
+			let tonConnectUI = null;
+
+			try {
+				tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+					manifestUrl: manifestUrl,
+					buttonRootId: 'ton-connect-modal'
+				});
+				console.log("TonConnect UI инициализирован");
+			} catch (e) {
+				console.error("Ошибка инициализации TonConnect:", e);
+			}
+
+			// Функция запуска оплаты через TON/USDT
+			window.startTonConnectPayment = function() {
+				console.log("Запуск оплаты TonConnect...");
+				
+				if (!tonConnectUI) {
+					alert("Ошибка: TonConnect не загружен");
+					return;
+				}
+
+				if (!tonConnectUI.connected) {
+					tonConnectUI.openModal();
+					console.log("Открыто окно подключения кошелька");
+					return;
+				}
+
+				const transaction = {
+					validUntil: Math.floor(Date.now() / 1000) + 600,
+					messages: [
+						{
+							address: "UQD1tm_mVqZAKAhRYjcZBlBDPbcl9zoU31O2l3Zeh0r2EJG5",
+							amount: "10000000",
+							payload: "" 
+						}
+					]
+				};
+
+				tonConnectUI.sendTransaction(transaction)
+					.then(result => {
+						console.log("Транзакция успешна!", result);
+						localStorage.setItem('payment_status', 'success');
+						localStorage.setItem('payment_method', 'ton');
+					})
+					.catch(error => {
+						console.error("Транзакция отменена или ошибка:", error);
+						localStorage.setItem('payment_status', 'failed');
+					});
+			};
+			
+			window.startStarsPayment = function() {
+				console.log("Запуск оплаты Stars...");
+				alert("Оплата звездами пока в разработке!");
+				localStorage.setItem('payment_status', 'stars_pending');
+			};
 		</script>
 
-		<script src="GPU Mining.js"></script>
+		<script src="gpumining.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"GPU Mining","experimentalVK":false,"fileSizes":{"GPU Mining.pck":702904,"GPU Mining.wasm":37896978},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"gpumining","experimentalVK":false,"fileSizes":{"gpumining.pck":702904,"gpumining.wasm":37896978},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -200,7 +264,6 @@ const engine = new Engine(GODOT_CONFIG);
 			} catch (err) {
 				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
 			}
-			// There's a chance that installing the service worker would fix the issue
 			Promise.race([
 				serviceWorkerRegistrationPromise.then((registration) => {
 					if (registration != null) {
@@ -208,18 +271,15 @@ const engine = new Engine(GODOT_CONFIG);
 					}
 					return registration;
 				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
 				new Promise((resolve) => {
 					setTimeout(() => resolve(), 2000);
 				}),
 			]).then(() => {
-				// Reload if there was no error.
 				window.location.reload();
 			}).catch((err) => {
 				console.error('Error while registering service worker:', err);
 			});
 		} else {
-			// Display the message as usual
 			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
