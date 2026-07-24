@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds8t2osmy7gox"
-path="res://.godot/imported/GPU Mining.png-aa75ab98adabd80b4bb86f1b7f627e46.ctex"
+path="res://.godot/imported/gpumining.png-3798bfc4b8a7fe5e88100bc0c5c90fec.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://gpumining/GPU Mining.png"
-dest_files=["res://.godot/imported/GPU Mining.png-aa75ab98adabd80b4bb86f1b7f627e46.ctex"]
+source_file="res://gpumining/gpumining.png"
+dest_files=["res://.godot/imported/gpumining.png-3798bfc4b8a7fe5e88100bc0c5c90fec.ctex"]
 
 [params]
 
