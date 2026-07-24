@@ -5,352 +5,129 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>GPU Mining</title>
 		<style>
-html, body, #canvas {
-	margin: 0;
-	padding: 0;
-	border: 0;
-}
-
-body {
-	color: white;
-	background-color: black;
-	overflow: hidden;
-	touch-action: none;
-}
-
-#canvas {
-	display: block;
-}
-
-#canvas:focus {
-	outline: none;
-}
-
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
-}
-
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
-}
-
-#status {
-	background-color: #242424;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	visibility: hidden;
-}
-
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
-}
-
-#status-splash.show-image--false {
-	display: none;
-}
-
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
-}
-
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
-}
-
-#status-progress, #status-notice {
-	display: none;
-}
-
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
-}
-
-#status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
-	overflow: hidden;
-	padding: 1rem;
-	text-align: center;
-	z-index: 1;
-}
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+body { color: white; background-color: black; overflow: hidden; touch-action: none; }
+#canvas { display: block; }
+#canvas:focus { outline: none; }
+#status, #status-splash, #status-progress { position: absolute; left: 0; right: 0; }
+#status, #status-splash { top: 0; bottom: 0; }
+#status { background-color: #242424; display: flex; flex-direction: column; justify-content: center; align-items: center; visibility: hidden; }
+#status-splash { max-height: 100%; max-width: 100%; margin: auto; }
+#status-splash.show-image--false { display: none; }
+#status-splash.fullsize--true { height: 100%; width: 100%; object-fit: contain; }
+#status-splash.use-filter--false { image-rendering: pixelated; }
+#status-progress, #status-notice { display: none; }
+#status-progress { bottom: 10%; width: 50%; margin: 0 auto; }
+#status-notice { background-color: #5b3943; border-radius: 0.5rem; border: 1px solid #9b3943; color: #e0e0e0; font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif; line-height: 1.3; margin: 0 2rem; overflow: hidden; padding: 1rem; text-align: center; z-index: 1; }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="gpumining.icon.png" />
 		<link rel="apple-touch-icon" href="gpumining.apple-touch-icon.png"/>
-
-		<!-- Подключение библиотеки TonConnect UI -->
+		<!-- TonConnect -->
 		<script src="https://unpkg.com/@tonconnect/ui/dist/tonconnect-ui.min.js"></script>
 	</head>
 	<body>
-		<canvas id="canvas">
-			Your browser does not support the canvas tag.
-		</canvas>
-
-		<noscript>
-			Your browser does not support JavaScript.
-		</noscript>
-
+		<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+		<noscript>Your browser does not support JavaScript.</noscript>
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="gpumining.png" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
 		</div>
-
-		<!-- Контейнер для модального окна TonConnect (скрыт по умолчанию) -->
 		<div id="ton-connect-modal" style="display: none;"></div>
 
-		<!-- Telegram WebApp Integration -->
+		<!-- Telegram WebApp -->
 		<script src="https://telegram.org/js/telegram-web-app.js"></script>
 		<script>
-			// Инициализация Telegram WebApp
 			const tg = window.Telegram.WebApp;
-			tg.expand(); // Развернуть на весь экран
-			
-			// Получаем данные пользователя
+			tg.expand();
 			const user = tg.initDataUnsafe.user;
-			
 			if (user) {
-				console.log("Telegram User:", user);
-				
-				// Сохраняем данные в localStorage для Godot
 				localStorage.setItem('tg_user_id', user.id.toString());
 				localStorage.setItem('tg_first_name', user.first_name || "");
 				localStorage.setItem('tg_last_name', user.last_name || "");
 				localStorage.setItem('tg_username', user.username || "");
 				localStorage.setItem('tg_photo_url', user.photo_url || "");
-				
-				console.log("Данные пользователя сохранены в localStorage");
-			} else {
-				console.log("Запущено не из Telegram или пользователь анонимен");
 			}
 
-			// --- ИНИЦИАЛИЗАЦИЯ TON CONNECT ---
 			const manifestUrl = 'https://dazlyx.github.io/gpumining/tonconnect-manifest.json'; 
-			
 			let tonConnectUI = null;
-
 			try {
-				tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-					manifestUrl: manifestUrl,
-					buttonRootId: 'ton-connect-modal'
-				});
-				console.log("TonConnect UI инициализирован");
-			} catch (e) {
-				console.error("Ошибка инициализации TonConnect:", e);
-			}
+				tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl, buttonRootId: 'ton-connect-modal' });
+				console.log("TonConnect UI initialized");
+			} catch (e) { console.error(e); }
 
-			// Функция запуска оплаты через TON/USDT
 			window.startTonConnectPayment = function() {
-				console.log("Запуск оплаты TonConnect...");
-				
-				if (!tonConnectUI) {
-					alert("Ошибка: TonConnect не загружен");
-					return;
-				}
-
-				if (!tonConnectUI.connected) {
-					tonConnectUI.openModal();
-					console.log("Открыто окно подключения кошелька");
-					return;
-				}
-
+				if (!tonConnectUI) { alert("Ошибка: TonConnect не загружен"); return; }
+				if (!tonConnectUI.connected) { tonConnectUI.openModal(); return; }
 				const transaction = {
 					validUntil: Math.floor(Date.now() / 1000) + 600,
-					messages: [
-						{
-							address: "UQD1tm_mVqZAKAhRYjcZBlBDPbcl9zoU31O2l3Zeh0r2EJG5",
-							amount: "10000000",
-							payload: "" 
-						}
-					]
+					messages: [{ address: "UQD1tm_mVqZAKAhRYjcZBlBDPbcl9zoU31O2l3Zeh0r2EJG5", amount: "10000000", payload: "" }]
 				};
-
 				tonConnectUI.sendTransaction(transaction)
-					.then(result => {
-						console.log("Транзакция успешна!", result);
-						localStorage.setItem('payment_status', 'success');
-						localStorage.setItem('payment_method', 'ton');
+					.then(result => { 
+						console.log("Success:", result);
+						localStorage.setItem('payment_status', 'success'); 
 					})
-					.catch(error => {
-						console.error("Транзакция отменена или ошибка:", error);
-						localStorage.setItem('payment_status', 'failed');
+					.catch(error => { 
+						console.log("Failed:", error);
+						localStorage.setItem('payment_status', 'failed'); 
 					});
 			};
 			
-			window.startStarsPayment = function() {
-				console.log("Запуск оплаты Stars...");
-				alert("Оплата звездами пока в разработке!");
-				localStorage.setItem('payment_status', 'stars_pending');
-			};
-
-			// --- ЗАГРУЗКА WASM ФАЙЛА С GITHUB RELEASES ---
-			async function loadWasmFromReleases() {
-				try {
-					// Замени URL на свою ссылку из Releases
-					const wasmUrl = 'https://github.com/dazlyx/gpumining/releases/download/v1.0.0/gpumining.wasm';
-					
-					const response = await fetch(wasmUrl);
-					if (!response.ok) throw new Error('Failed to download WASM file');
-					
-					const arrayBuffer = await response.arrayBuffer();
-					const wasmBytes = new Uint8Array(arrayBuffer);
-					
-					// Сохраняем в память для Godot
-					window.customWasmModule = wasmBytes;
-					console.log('WASM файл успешно загружен с GitHub Releases:', wasmBytes.length, 'байт');
-					
-					return true;
-				} catch (error) {
-					console.error('Ошибка загрузки WASM файла:', error);
-					return false;
-				}
-			}
-
-			// Загружаем WASM перед запуском игры
-			loadWasmFromReleases().then(success => {
-				if (!success) {
-					document.getElementById('status-notice').innerHTML = 
-						'Ошибка загрузки игры. Попробуйте обновить страницу.';
-					document.getElementById('status').style.visibility = 'visible';
-					return;
-				}
-				
-				// Продолжаем загрузку игры
-				startGameEngine();
-			});
-
-			function startGameEngine() {
-				const GODOT_CONFIG = {
-					"args":[],
-					"canvasResizePolicy":2,
-					"emscriptenPoolSize":8,
-					"ensureCrossOriginIsolationHeaders":true,
-					"executable":"gpumining",
-					"experimentalVK":false,
-					"fileSizes":{"gpumining.pck":702904,"gpumining.wasm":36100000}, // 36.1MB
-					"focusCanvas":true,
-					"gdextensionLibs":[],
-					"godotPoolSize":4
-				};
-				const GODOT_THREADS_ENABLED = false;
-				const engine = new Engine(GODOT_CONFIG);
-
-				(function () {
-					const statusOverlay = document.getElementById('status');
-					const statusProgress = document.getElementById('status-progress');
-					const statusNotice = document.getElementById('status-notice');
-
-					let initializing = true;
-					let statusMode = '';
-
-					function setStatusMode(mode) {
-						if (statusMode === mode || !initializing) {
-							return;
-						}
-						if (mode === 'hidden') {
-							statusOverlay.remove();
-							initializing = false;
-							return;
-						}
-						statusOverlay.style.visibility = 'visible';
-						statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-						statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-						statusMode = mode;
-					}
-
-					function setStatusNotice(text) {
-						while (statusNotice.lastChild) {
-							statusNotice.removeChild(statusNotice.lastChild);
-						}
-						const lines = text.split('\n');
-						lines.forEach((line) => {
-							statusNotice.appendChild(document.createTextNode(line));
-							statusNotice.appendChild(document.createElement('br'));
-						});
-					}
-
-					function displayFailureNotice(err) {
-						console.error(err);
-						if (err instanceof Error) {
-							setStatusNotice(err.message);
-						} else if (typeof err === 'string') {
-							setStatusNotice(err);
-						} else {
-							setStatusNotice('An unknown error occurred.');
-						}
-						setStatusMode('notice');
-						initializing = false;
-					}
-
-					const missing = Engine.getMissingFeatures({
-						threads: GODOT_THREADS_ENABLED,
-					});
-
-					if (missing.length !== 0) {
-						if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-							let serviceWorkerRegistrationPromise;
-							try {
-								serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
-							} catch (err) {
-								serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
-							}
-							Promise.race([
-								serviceWorkerRegistrationPromise.then((registration) => {
-									if (registration != null) {
-										return Promise.reject(new Error('Service worker already exists.'));
-									}
-									return registration;
-								}).then(() => engine.installServiceWorker()),
-								new Promise((resolve) => {
-									setTimeout(() => resolve(), 2000);
-								}),
-							]).then(() => {
-								window.location.reload();
-							}).catch((err) => {
-								console.error('Error while registering service worker:', err);
-							});
-						} else {
-							const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
-							displayFailureNotice(missingMsg + missing.join('\n'));
-						}
-					} else {
-						setStatusMode('progress');
-						engine.startGame({
-							'onProgress': function (current, total) {
-								if (current > 0 && total > 0) {
-									statusProgress.value = current;
-									statusProgress.max = total;
-								} else {
-									statusProgress.removeAttribute('value');
-									statusProgress.removeAttribute('max');
-								}
-							},
-							'onCustomWasmLoaded': function() {
-								return window.customWasmModule;
-							}
-						}).then(() => {
-							setStatusMode('hidden');
-						}, displayFailureNotice);
-					}
-				}());
-			}
+			window.startStarsPayment = function() { alert("Оплата звездами пока в разработке!"); };
 		</script>
 
+		<!-- Godot Engine Script -->
 		<script src="gpumining.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"gpumining","experimentalVK":false,"fileSizes":{"gpumining.pck":702904,"gpumining.wasm":36100000},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) return;
+		if (mode === 'hidden') { statusOverlay.remove(); initializing = false; return; }
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) statusNotice.removeChild(statusNotice.lastChild);
+		const lines = text.split('\n');
+		lines.forEach((line) => { statusNotice.appendChild(document.createTextNode(line)); statusNotice.appendChild(document.createElement('br')); });
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		setStatusNotice(err instanceof Error ? err.message : (typeof err === 'string' ? err : 'An unknown error occurred.'));
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+
+	if (missing.length !== 0) {
+		const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+		displayFailureNotice(missingMsg + missing.join('\n'));
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) { statusProgress.value = current; statusProgress.max = total; } 
+				else { statusProgress.removeAttribute('value'); statusProgress.removeAttribute('max'); }
+			},
+		}).then(() => { setStatusMode('hidden'); }, displayFailureNotice);
+	}
+}());
+		</script>
 	</body>
 </html>
